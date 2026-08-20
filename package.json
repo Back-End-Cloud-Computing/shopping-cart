@@ -1,0 +1,20 @@
+{
+  "name": "shopping-cart-service",
+  "version": "1.0.0",
+  "description": "Shopping cart service (cart-service) with Redis persistence",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "redis:up": "docker compose up -d redis",
+    "redis:down": "docker compose down"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "redis": "^4.7.0"
+  }
+}
