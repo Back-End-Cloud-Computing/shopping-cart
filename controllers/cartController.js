@@ -100,8 +100,12 @@ async function removeItem(req, res) {
             return res.status(404).json({ error: 'Cart not found' });
         }
 
-        await cartRepository.removeItem(userId, product_id);
-        res.json({ message: 'Item removed from cart' });
+        const removed = await cartRepository.removeItem(userId, product_id);
+        if (!removed) {
+            return res.status(404).json({ error: 'Item not found in cart' });
+        }
+
+        res.status(204).send();
     } catch (error) {
         console.error('Error removing item:', error);
         res.status(500).json({ error: 'Error removing item from cart' });
@@ -111,8 +115,12 @@ async function removeItem(req, res) {
 async function clearCart(req, res) {
     const userId = req.user.id;
     try {
-        const removed = await cartRepository.clear(userId);
-        res.json({ message: removed ? 'Cart cleared' : 'Cart is already empty' });
+        if (!(await cartRepository.exists(userId))) {
+            return res.status(404).json({ error: 'Cart not found' });
+        }
+
+        await cartRepository.clear(userId);
+        res.status(204).send();
     } catch (error) {
         console.error('Error clearing cart:', error);
         res.status(500).json({ error: 'Error clearing cart' });
