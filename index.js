@@ -2,11 +2,16 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const swaggerUi = require('swagger-ui-express');
 const redis = require('./config/redis');
+const openapiSpec = require('./config/openapi');
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
+app.get('/openapi.json', (req, res) => res.json(openapiSpec));
 
 const cartRoutes = require('./routes/cartRoutes');
 
