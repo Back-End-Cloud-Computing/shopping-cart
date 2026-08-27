@@ -132,6 +132,65 @@ docker push jcliz/shopping-cart:<version>
 docker push jcliz/shopping-cart:latest
 ```
 
+## Running on Kubernetes (minikube)
+
+Local Kubernetes setup used for the `kubernetes-fundamentos` lab, driven entirely with `kubectl` (no manifests yet — everything below is created imperatively).
+
+### Prerequisites
+
+- Docker Desktop running (minikube uses the `docker` driver).
+- `minikube` and `kubectl` installed. On Windows: `winget install -e --id Kubernetes.minikube` (kubectl is usually already available; check with `kubectl version --client`).
+
+### 1. Start the cluster
+
+```bash
+minikube start --driver=docker
+minikube status
+kubectl get nodes
+```
+
+The node should show up with status `Ready`.
+
+### 2. Deploy the app and expose it
+
+```bash
+kubectl create deployment nginx --image=nginx
+kubectl scale deployment nginx --replicas=3
+kubectl get deployments
+kubectl get pods
+
+kubectl expose deployment nginx --name=nginx-service --port=80
+kubectl get services
+```
+
+`nginx-service` is a `ClusterIP` Service: it gives the 3 Pods a single stable name and load-balances between them, but it's only reachable from inside the cluster.
+
+### 3. Test the Service from inside the cluster
+
+```bash
+kubectl run teste --image=curlimages/curl --restart=Never --attach --rm -- curl -s http://nginx-service
+```
+
+This proves DNS-based service discovery works (the client only needs the Service name, never a Pod IP). Note: `-it` doesn't work in a non-interactive terminal (e.g. Claude Code's Bash tool) — use `--attach` and pass the command directly instead of opening an interactive shell.
+
+### 4. Access it from the host browser
+
+A `ClusterIP` Service has no automatic port on `localhost`. Use `port-forward` for a temporary tunnel:
+
+```bash
+kubectl port-forward service/nginx-service 8080:80
+```
+
+Keep this running in the background, then open `http://localhost:8080`. Stop it with `Ctrl+C` (or kill the `kubectl` process) when done.
+
+### 5. Stop or remove the cluster
+
+```bash
+minikube stop     # pauses the cluster, keeps it for next time (preferred between labs)
+minikube start    # resumes it
+minikube delete   # removes it completely
+```
+
 ## Inspecting Redis
 
 ```bash
