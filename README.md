@@ -40,14 +40,38 @@ http/productClient.js           calls to product-service
 
 ## Running
 
+Prerequisites: Node.js 20+, Docker Desktop running.
+
+### Option 1 — Redis in a container, service on the host
+
+Best for day-to-day development (fast reload with `npm run dev`).
+
 ```bash
 npm install
-cp .env.example .env          # set JWT_SECRET and REDIS_URL
-npm run redis:up              # bring up local Redis via docker compose
-npm start
+# create a .env file with PORT, REDIS_URL, JWT_SECRET, INTERNAL_SECRET, etc. (see Environment variables below)
+npm run redis:up              # starts the redis container (docker-compose.yml)
+npm run dev                   # or `npm start`
 ```
 
-Or everything in a container: `docker compose up --build`.
+Check it worked:
+
+```bash
+curl http://localhost:3003/health
+# {"status":"ok","redis":"up"}
+```
+
+Stop Redis when done: `npm run redis:down`.
+
+### Option 2 — everything in containers
+
+Builds the service image and starts it together with Redis, connected over the compose network (the service reaches Redis at `redis://redis:6379`, already set in `docker-compose.yml`).
+
+```bash
+# create a .env file with PORT, REDIS_URL, JWT_SECRET, INTERNAL_SECRET, etc. (see Environment variables below)
+docker compose up --build
+```
+
+Add `-d` to run in the background; stop everything with `docker compose down`.
 
 ### Environment variables
 
