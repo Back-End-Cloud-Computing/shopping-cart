@@ -100,6 +100,38 @@ All routes require authentication (cookie `accessToken` or `Authorization: Beare
 
 The request/response format is the same as the Postgres version — the front-end doesn't need to change. The one difference: the item's `id` is now the `product_id` itself (the `cart_items` PK no longer exists).
 
+## API documentation (Swagger)
+
+With the service running, the interactive docs are available at:
+
+```
+http://localhost:3003/docs/
+```
+
+The raw OpenAPI spec is served at `http://localhost:3003/openapi.json`.
+
+## Docker Hub image
+
+The service is also published as a versioned image at [`jcliz/shopping-cart`](https://hub.docker.com/r/jcliz/shopping-cart).
+
+Run it directly, without building anything locally:
+
+```bash
+docker run -d --name shopping-cart-service -p 3003:3003 \
+  --env-file .env \
+  -e REDIS_URL=redis://host.docker.internal:6379 \
+  jcliz/shopping-cart:1.0.0
+```
+
+This still needs a reachable Redis (`npm run redis:up` starts one on `localhost:6379`, exposed to containers as `host.docker.internal:6379`). To publish a new version yourself:
+
+```bash
+docker build -t jcliz/shopping-cart:<version> -t jcliz/shopping-cart:latest .
+docker login
+docker push jcliz/shopping-cart:<version>
+docker push jcliz/shopping-cart:latest
+```
+
 ## Inspecting Redis
 
 ```bash
