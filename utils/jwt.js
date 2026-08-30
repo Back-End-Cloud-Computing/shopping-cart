@@ -1,13 +1,14 @@
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-    throw new Error('JWT_SECRET must be defined in .env');
-}
+const PUBLIC_KEY = fs.readFileSync(path.join(__dirname, '../keys/public.pem'));
 
 function verifyToken(token) {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, PUBLIC_KEY, {
+        algorithms: ['RS256'],
+        issuer: 'ganjj-authorization',
+    });
 }
 
 module.exports = { verifyToken };

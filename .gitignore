@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 
-# Environment variables (JWT secrets, Redis URL)
+# Environment variables (Redis URL, service secrets)
 # .env.example is intentionally tracked — it serves as a template.
 .env
 .env.*

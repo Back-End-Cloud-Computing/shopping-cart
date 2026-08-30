@@ -13,6 +13,11 @@ function authenticate(req, res, next) {
 
     try {
         const payload = verifyToken(token);
+
+        if (payload.typ !== 'access') {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+
         req.user = payload;
         next();
     } catch (err) {

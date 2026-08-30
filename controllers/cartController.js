@@ -14,7 +14,7 @@ function mapItemResponse(item) {
 }
 
 async function getCart(req, res) {
-    const userId = req.user.id;
+    const userId = req.user.sub;
     try {
         const items = await cartRepository.listItems(userId);
         res.json({ items: items.map(mapItemResponse) });
@@ -25,7 +25,7 @@ async function getCart(req, res) {
 }
 
 async function addItem(req, res) {
-    const userId = req.user.id;
+    const userId = req.user.sub;
     const { product_id, quantity = 1 } = req.body;
 
     if (!product_id || quantity < 1) {
@@ -67,7 +67,7 @@ async function addItem(req, res) {
 }
 
 async function updateItem(req, res) {
-    const userId = req.user.id;
+    const userId = req.user.sub;
     const { product_id } = req.params;
     const { quantity } = req.body;
 
@@ -92,7 +92,7 @@ async function updateItem(req, res) {
 }
 
 async function removeItem(req, res) {
-    const userId = req.user.id;
+    const userId = req.user.sub;
     const { product_id } = req.params;
 
     try {
@@ -113,7 +113,7 @@ async function removeItem(req, res) {
 }
 
 async function clearCart(req, res) {
-    const userId = req.user.id;
+    const userId = req.user.sub;
     try {
         if (!(await cartRepository.exists(userId))) {
             return res.status(404).json({ error: 'Cart not found' });
