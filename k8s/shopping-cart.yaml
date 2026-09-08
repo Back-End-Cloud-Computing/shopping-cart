@@ -1,0 +1,93 @@
+# Shopping Cart Service on Kubernetes.
+#
+# Swap "jcliz" for your own Docker Hub user before applying, or use the local
+# image directly if the cluster shares the Docker daemon (e.g. minikube with
+# `eval $(minikube docker-env)`, or OrbStack).
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-cart
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: shopping-cart
+  template:
+    metadata:
+      labels:
+        app: shopping-cart
+    spec:
+      containers:
+        - name: shopping-cart
+          image: jcliz/shopping-cart:1.0.0
+          # Image published on Docker Hub. IfNotPresent avoids re-pulling
+          # when the cluster already has the same tag cached locally.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3003
+          env:
+            # Redis is reached by the Service NAME, never the Pod IP.
+            - name: REDIS_URL
+              value: redis://redis:6379
+            - name: REDIS_PREFIX
+              value: cart
+            - name: CART_TTL_SECONDS
+              value: "604800"
+            # product-service isn't part of this cluster yet; point this at
+            # wherever it's reachable from inside the cluster once it is.
+            - name: PRODUCT_SERVICE_URL
+              value: http://product:8000
+            - name: INTERNAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shopping-cart-secrets
+                  key: internal-secret
+          volumeMounts:
+            # Overrides the key baked into the image at build time with
+            # whatever authorization actually has running in this cluster.
+            - name: jwt-public-key
+              mountPath: /app/keys
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 12
+          # /health also pings Redis and returns 503 while it's down, which
+          # would make a poor liveness check — a slow Redis shouldn't get the
+          # Pod itself killed. A plain TCP check is enough to catch a wedged
+          # process.
+          livenessProbe:
+            tcpSocket:
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+      volumes:
+        # ConfigMap, not Secret: this is the PUBLIC key, it only verifies
+        # tokens and can't issue them. The private key stays in authorization.
+        - name: jwt-public-key
+          configMap:
+            name: jwt-public-key
+
+---
+# Stable address for the cart-service inside the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-cart
+spec:
+  selector:
+    app: shopping-cart
+  ports:
+    - port: 3003
+      targetPort: 3003

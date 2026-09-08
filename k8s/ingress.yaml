@@ -1,0 +1,19 @@
+# External HTTP entry point for the cart-service. See the comment in
+# authorization/k8s/ingress.yaml for why routing is host-based.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopping-cart-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: shopping-cart.ganjj.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shopping-cart
+                port:
+                  number: 3003

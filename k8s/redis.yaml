@@ -1,0 +1,59 @@
+# Redis backing the shopping cart.
+#
+# One replica only, same reasoning as postgres-client and oracle-auth in the
+# sibling repos: the Deployment here just keeps the Pod up and gives it a
+# stable name, it doesn't scale the store. Data lives on the Pod's own disk —
+# if it's recreated, carts are lost and rebuilt from scratch (a real
+# deployment would want a StatefulSet with a PersistentVolumeClaim instead).
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          command: ["redis-server", "--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+
+---
+# Stable address for the cart-service. This is the name it uses in REDIS_URL.
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
