@@ -5,13 +5,17 @@ const cookieParser = require('cookie-parser');
 const swaggerUi = require('swagger-ui-express');
 const redis = require('./config/redis');
 const openapiSpec = require('./config/openapi');
+const { httpMetrics, metricsHandler } = require('./config/metrics');
 
 const app = express();
+app.use(httpMetrics);
 app.use(express.json());
 app.use(cookieParser());
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec));
 app.get('/openapi.json', (req, res) => res.json(openapiSpec));
+// Scraped by Prometheus inside the cluster; deliberately left out of the Ingress.
+app.get('/metrics', metricsHandler);
 
 const cartRoutes = require('./routes/cartRoutes');
 

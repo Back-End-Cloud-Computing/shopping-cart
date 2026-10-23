@@ -1,5 +1,8 @@
 # External HTTP entry point for the cart-service. See the comment in
 # authorization/k8s/ingress.yaml for why routing is host-based.
+#
+# Only the public paths are routed. /metrics is scraped from inside the
+# cluster (pod annotations) and must not be reachable from outside.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -10,8 +13,29 @@ spec:
     - host: shopping-cart.ganjj.local
       http:
         paths:
-          - path: /
+          - path: /api/cart
             pathType: Prefix
+            backend:
+              service:
+                name: shopping-cart
+                port:
+                  number: 3003
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: shopping-cart
+                port:
+                  number: 3003
+          - path: /openapi.json
+            pathType: Exact
+            backend:
+              service:
+                name: shopping-cart
+                port:
+                  number: 3003
+          - path: /health
+            pathType: Exact
             backend:
               service:
                 name: shopping-cart

@@ -115,6 +115,13 @@ All routes require authentication (cookie `accessToken` or `Authorization: Beare
 | `DELETE` | `/api/cart/items/:product_id` | removes an item |
 | `DELETE` | `/api/cart` | empties the cart |
 | `GET` | `/health` | service status + `PING` on Redis (no auth) |
+| `GET` | `/metrics` | Prometheus metrics (no auth, not exposed by the Ingress) |
+
+## Metrics
+
+`GET /metrics` serves Prometheus metrics via `prom-client`: the Node.js default metrics (CPU, memory, event loop, GC) plus `http_request_duration_seconds`, a histogram labelled by `method`, `route` (the route template, e.g. `/api/cart/items/:product_id`) and `status_code`. Every series carries `service="shopping-cart"`.
+
+On Kubernetes the pod is annotated with `prometheus.io/scrape|port|path`, and the Ingress only routes `/api/cart`, `/docs`, `/openapi.json` and `/health`, so `/metrics` stays inside the cluster.
 
 The request/response format is the same as the Postgres version — the front-end doesn't need to change. The one difference: the item's `id` is now the `product_id` itself (the `cart_items` PK no longer exists).
 
