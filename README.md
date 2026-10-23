@@ -98,6 +98,7 @@ Add `-d` to run in the background; stop everything with `docker compose down`.
 | `REDIS_PREFIX` | `cart` | key prefix |
 | `CART_TTL_SECONDS` | `604800` | cart expiration (7 days) |
 | `PRODUCT_SERVICE_URL` | `http://localhost:8000` | product-service base URL (`http://product-api:8000` inside the cluster) |
+| `JWT_PUBLIC_KEY_PATH` | `keys/public.pem` | authorization's RS256 public key used to verify access tokens |
 | `PROMOTION_SERVICE_URL` | `http://promotion:8000` | promotion-service base URL (discount quote) |
 | `INTERNAL_SECRET` | — | `x-internal-secret` header for promotion's `/internal` routes; same value as promotion's |
 
@@ -128,6 +129,15 @@ On Kubernetes the pod is annotated with `prometheus.io/scrape|port|path`, and th
 `grafana/shopping-cart-dashboard.json` is a dashboard exported for import: requests per second, 5xx error ratio, p50/p95/p99 latency, requests and errors by route and status code, plus memory and event-loop lag per pod. In Grafana, go to **Dashboards → New → Import**, upload the file and pick the Prometheus data source when asked — no manual editing needed.
 
 The request/response format is the same as the Postgres version — the front-end doesn't need to change. The one difference: the item's `id` is now the `product_id` itself (the `cart_items` PK no longer exists).
+
+## Lint and tests
+
+```bash
+npm run lint   # ESLint
+npm test       # node:test + supertest; Redis, product and promotion are stubbed
+```
+
+The same steps run in GitHub Actions (`.github/workflows/ci.yml`) on every pull request and push to `main`, followed by a `docker build` of the image.
 
 ## API documentation (Swagger)
 

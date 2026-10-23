@@ -53,6 +53,7 @@ async function start() {
     }
 }
 
-start();
+// Only listen when run directly, so tests can import the app without Redis.
+if (require.main === module) start();
 
 module.exports = app;
