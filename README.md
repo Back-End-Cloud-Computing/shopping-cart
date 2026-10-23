@@ -82,7 +82,7 @@ Add `-d` to run in the background; stop everything with `docker compose down`.
 | `REDIS_PREFIX` | `cart` | key prefix |
 | `CART_TTL_SECONDS` | `604800` | cart expiration (7 days) |
 | `JWT_SECRET` | — | **required**; must match the auth-service |
-| `PRODUCT_SERVICE_URL` | `http://localhost:3002` | product-service base URL |
+| `PRODUCT_SERVICE_URL` | `http://localhost:8000` | product-service base URL (`http://product-api:8000` inside the cluster) |
 | `INTERNAL_SECRET` | — | `x-internal-secret` header for internal routes |
 
 ## API

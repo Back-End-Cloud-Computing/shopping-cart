@@ -34,10 +34,10 @@ spec:
               value: cart
             - name: CART_TTL_SECONDS
               value: "604800"
-            # product-service isn't part of this cluster yet; point this at
-            # wherever it's reachable from inside the cluster once it is.
+            # Must match the Service name in product/k8s/product.yaml
+            # (product-api), and the port the product image listens on.
             - name: PRODUCT_SERVICE_URL
-              value: http://product:8000
+              value: http://product-api:8000
             - name: INTERNAL_SECRET
               valueFrom:
                 secretKeyRef:
