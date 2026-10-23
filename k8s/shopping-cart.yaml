@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: shopping-cart
-          image: jcliz/shopping-cart:1.0.0
+          image: jcliz/shopping-cart:1.1.0
           # Image published on Docker Hub. IfNotPresent avoids re-pulling
           # when the cluster already has the same tag cached locally.
           imagePullPolicy: IfNotPresent

@@ -159,17 +159,18 @@ Run it directly, without building anything locally:
 docker run -d --name shopping-cart-service -p 3003:3003 \
   --env-file .env \
   -e REDIS_URL=redis://host.docker.internal:6379 \
-  jcliz/shopping-cart:1.0.0
+  jcliz/shopping-cart:1.1.0
 ```
 
-This still needs a reachable Redis (`npm run redis:up` starts one on `localhost:6379`, exposed to containers as `host.docker.internal:6379`). To publish a new version yourself:
+This still needs a reachable Redis (`npm run redis:up` starts one on `localhost:6379`, exposed to containers as `host.docker.internal:6379`). The image is multi-arch (`linux/amd64` and `linux/arm64`), so it runs natively on Intel and Apple Silicon machines. To publish a new version yourself:
 
 ```bash
-docker build -t jcliz/shopping-cart:<version> -t jcliz/shopping-cart:latest .
 docker login
-docker push jcliz/shopping-cart:<version>
-docker push jcliz/shopping-cart:latest
+./scripts/publish-image.sh <version>      # buildx build for both platforms, pushes :<version> and :latest
+docker buildx imagetools inspect jcliz/shopping-cart:<version>   # should list linux/amd64 and linux/arm64
 ```
+
+Set `IMAGE=<user>/shopping-cart` to publish under another Docker Hub account. Remember to bump the tag in `k8s/shopping-cart.yaml`.
 
 ## Running on Kubernetes (minikube)
 

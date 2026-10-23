@@ -2,7 +2,7 @@ const openapiSpec = {
     openapi: '3.0.3',
     info: {
         title: 'Shopping Cart Service API',
-        version: '1.0.0',
+        version: '1.1.0',
         description: 'Cart microservice backed by Redis. All /api/cart routes require authentication.',
     },
     servers: [{ url: '/', description: 'Current host' }],

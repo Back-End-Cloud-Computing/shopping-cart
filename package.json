@@ -1,6 +1,6 @@
 {
   "name": "shopping-cart-service",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Shopping cart service (cart-service) with Redis persistence",
   "main": "index.js",
   "type": "commonjs",
