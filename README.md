@@ -16,8 +16,8 @@ One `HASH` key per user:
 
 ```
 cart:{userId}
-  ├── "12" → {"product_id":12,"name":"T-Shirt","price":50,"color":"blue","image_url":null,"quantity":2,"added_at":1737400000000}
-  └── "34" → {"product_id":34,...}
+  ├── "6ad8…f29" → {"product_id":"6ad83139dbb96e49bc0aef29","name":"T-Shirt","price":50,"color":"blue","image_url":null,"quantity":2,"added_at":1737400000000}
+  └── "6ad8…f2a" → {"product_id":"6ad83139dbb96e49bc0aef2a",...}
 ```
 
 - **field** = `product_id` (guarantees a unique item per product without needing a `SELECT` before the `INSERT`);
@@ -25,6 +25,16 @@ cart:{userId}
 - **TTL** = `CART_TTL_SECONDS` (default 7 days) on the whole key, renewed on every write.
 
 Since there is no longer a JOIN with the `product` table, the name/price/color/image are fetched from the **product-service** at the moment the item is added to the cart and stored in the snapshot.
+
+### Contract with product-service
+
+| | |
+| --- | --- |
+| Route | `GET {PRODUCT_SERVICE_URL}/products/{id}` (`id` is the product's string id) |
+| Auth | the caller's access token, forwarded as `Authorization: Bearer <token>` (product validates the same RS256 token) |
+| Fields read | `id`, `name`, `price` (required), `stock` (checked when present), `attributes.color` |
+
+A product without `price` is rejected with `502`; an unknown id returns `404`.
 
 ## Structure
 

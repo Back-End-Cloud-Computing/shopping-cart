@@ -15,8 +15,8 @@ const openapiSpec = {
             CartItem: {
                 type: 'object',
                 properties: {
-                    id: { type: 'integer', example: 12 },
-                    product_id: { type: 'integer', example: 12 },
+                    id: { type: 'string', example: '6ad83139dbb96e49bc0aef29' },
+                    product_id: { type: 'string', example: '6ad83139dbb96e49bc0aef29' },
                     name: { type: 'string', example: 'T-Shirt' },
                     price: { type: 'number', example: 50 },
                     color: { type: 'string', nullable: true, example: 'blue' },
@@ -28,7 +28,7 @@ const openapiSpec = {
                 type: 'object',
                 required: ['product_id'],
                 properties: {
-                    product_id: { type: 'integer', example: 12 },
+                    product_id: { type: 'string', example: '6ad83139dbb96e49bc0aef29' },
                     quantity: { type: 'integer', example: 1, default: 1 },
                 },
             },
@@ -96,13 +96,14 @@ const openapiSpec = {
                     201: { description: 'Item added' },
                     400: { description: 'Invalid payload or insufficient stock', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
                     404: { description: 'Product not found' },
+                    502: { description: 'product-service failed or returned a product without price' },
                 },
             },
         },
         '/api/cart/items/{product_id}': {
             put: {
                 summary: 'Set the quantity of an item in the cart',
-                parameters: [{ name: 'product_id', in: 'path', required: true, schema: { type: 'integer' } }],
+                parameters: [{ name: 'product_id', in: 'path', required: true, schema: { type: 'string' } }],
                 requestBody: {
                     required: true,
                     content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdateItemRequest' } } },
@@ -114,7 +115,7 @@ const openapiSpec = {
             },
             delete: {
                 summary: 'Remove an item from the cart',
-                parameters: [{ name: 'product_id', in: 'path', required: true, schema: { type: 'integer' } }],
+                parameters: [{ name: 'product_id', in: 'path', required: true, schema: { type: 'string' } }],
                 responses: {
                     204: { description: 'Item removed' },
                     404: { description: 'Cart or item not found' },

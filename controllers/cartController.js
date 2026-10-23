@@ -34,26 +34,32 @@ async function addItem(req, res) {
 
     let product;
     try {
-        product = await productClient.getProduct(product_id);
+        product = await productClient.getProduct(product_id, req.accessToken);
     } catch (err) {
         if (err.status === 404) return res.status(404).json({ error: 'Product not found' });
         console.error('Error querying product-service:', err);
-        return res.status(500).json({ error: 'Error checking stock' });
+        return res.status(502).json({ error: 'Error querying product-service' });
+    }
+
+    const price = Number(product.price);
+    if (product.price == null || Number.isNaN(price)) {
+        return res.status(502).json({ error: 'Product has no price' });
     }
 
     try {
         const existing = await cartRepository.findItem(userId, product_id);
         const finalQuantity = (existing?.quantity || 0) + quantity;
 
-        if (product.stock < finalQuantity) {
+        // Stock is only enforced when product-service reports it.
+        if (typeof product.stock === 'number' && product.stock < finalQuantity) {
             return res.status(400).json({ error: 'Insufficient stock' });
         }
 
         await cartRepository.saveItem(userId, {
-            product_id: product.id ?? product_id,
+            product_id: String(product.id ?? product_id),
             name: product.name,
-            price: Number(product.price),
-            color: product.color ?? null,
+            price,
+            color: product.attributes?.color ?? product.attributes?.cor ?? null,
             image_url: product.image_url ?? null,
             quantity: finalQuantity,
             added_at: existing?.added_at ?? Date.now(),

@@ -19,6 +19,8 @@ function authenticate(req, res, next) {
         }
 
         req.user = payload;
+        // Forwarded on calls to sibling services that validate the same token.
+        req.accessToken = token;
         next();
     } catch (err) {
         const expired = err.name === 'TokenExpiredError';
