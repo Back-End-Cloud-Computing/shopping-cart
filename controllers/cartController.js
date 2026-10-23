@@ -1,5 +1,6 @@
 const cartRepository = require('../repositories/cartRepository');
 const productClient = require('../http/productClient');
+const promotionClient = require('../http/promotionClient');
 
 function mapItemResponse(item) {
     return {
@@ -13,11 +14,68 @@ function mapItemResponse(item) {
     };
 }
 
+function toMoney(value) {
+    return Math.round(Number(value) * 100) / 100;
+}
+
+/**
+ * Prices the cart through promotion-service. If promotion is unreachable the
+ * cart is still returned, priced without discounts and flagged as such,
+ * instead of failing the whole read.
+ */
+async function buildSummary(items, coupon) {
+    const subtotal = toMoney(items.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    const undiscounted = {
+        subtotal,
+        promotions_discount: 0,
+        coupon_discount: 0,
+        total: subtotal,
+        coupon: null,
+        discounts_applied: false,
+    };
+
+    if (items.length === 0) return { summary: undiscounted, itemDiscounts: new Map() };
+
+    try {
+        const quote = await promotionClient.calculateDiscounts(items, coupon);
+        const itemDiscounts = new Map(
+            (quote.items || []).map((line) => [String(line.product_id), line]),
+        );
+
+        return {
+            summary: {
+                subtotal: toMoney(quote.subtotal),
+                promotions_discount: toMoney(quote.promotions_discount),
+                coupon_discount: toMoney(quote.coupon_discount),
+                total: toMoney(quote.total),
+                coupon: quote.coupon ?? null,
+                discounts_applied: true,
+            },
+            itemDiscounts,
+        };
+    } catch (err) {
+        console.error('Error querying promotion-service:', err);
+        return { summary: undiscounted, itemDiscounts: new Map() };
+    }
+}
+
 async function getCart(req, res) {
     const userId = req.user.sub;
     try {
         const items = await cartRepository.listItems(userId);
-        res.json({ items: items.map(mapItemResponse) });
+        const { summary, itemDiscounts } = await buildSummary(items, req.query.coupon);
+
+        res.json({
+            items: items.map((item) => {
+                const line = itemDiscounts.get(String(item.product_id));
+                return {
+                    ...mapItemResponse(item),
+                    discount_percentage: line ? Number(line.discount_percentage) : 0,
+                    discounted_price: line ? toMoney(line.discounted_price) : item.price,
+                };
+            }),
+            ...summary,
+        });
     } catch (error) {
         console.error('Error fetching cart:', error);
         res.status(500).json({ error: 'Error fetching cart' });

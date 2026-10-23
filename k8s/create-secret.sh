@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Creates the Secret holding INTERNAL_SECRET, the shared header cart-service
-# sends product-service on internal calls (stock checks).
+# sends promotion-service on internal calls (discount quote). It must hold
+# the same value as promotion's INTERNAL_SECRET.
 #
 # Not a versioned YAML on purpose: the value isn't committed to Git. It's read
 # from the local .env by default, same value the docker-compose setup uses.

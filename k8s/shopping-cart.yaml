@@ -38,6 +38,9 @@ spec:
             # (product-api), and the port the product image listens on.
             - name: PRODUCT_SERVICE_URL
               value: http://product-api:8000
+            # Discount quote: POST /internal/discounts/calculate.
+            - name: PROMOTION_SERVICE_URL
+              value: http://promotion:8000
             - name: INTERNAL_SECRET
               valueFrom:
                 secretKeyRef:

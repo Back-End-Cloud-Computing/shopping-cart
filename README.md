@@ -36,6 +36,12 @@ Since there is no longer a JOIN with the `product` table, the name/price/color/i
 
 A product without `price` is rejected with `502`; an unknown id returns `404`.
 
+### Contract with promotion-service
+
+`GET /api/cart` prices the cart through `POST {PROMOTION_SERVICE_URL}/internal/discounts/calculate` (header `x-internal-secret: $INTERNAL_SECRET`), sending each item's `product_id`, `unit_price` and `quantity` plus the optional coupon. The response adds `subtotal`, `promotions_discount`, `coupon_discount`, `total` and `coupon` to the cart, and `discount_percentage` / `discounted_price` to each item.
+
+The quote never consumes a coupon use — that stays with order at checkout. If promotion is down, the cart is still returned priced without discounts and with `discounts_applied: false`.
+
 ## Structure
 
 ```
@@ -92,7 +98,8 @@ Add `-d` to run in the background; stop everything with `docker compose down`.
 | `REDIS_PREFIX` | `cart` | key prefix |
 | `CART_TTL_SECONDS` | `604800` | cart expiration (7 days) |
 | `PRODUCT_SERVICE_URL` | `http://localhost:8000` | product-service base URL (`http://product-api:8000` inside the cluster) |
-| `INTERNAL_SECRET` | — | `x-internal-secret` header for internal routes |
+| `PROMOTION_SERVICE_URL` | `http://promotion:8000` | promotion-service base URL (discount quote) |
+| `INTERNAL_SECRET` | — | `x-internal-secret` header for promotion's `/internal` routes; same value as promotion's |
 
 All of them are listed in `.env.example` with example values. Access tokens are verified against the authorization service's RS256 public key at `keys/public.pem` (no shared JWT secret).
 
@@ -102,7 +109,7 @@ All routes require authentication (cookie `accessToken` or `Authorization: Beare
 
 | Method | Route | Description |
 | --- | --- | --- |
-| `GET` | `/api/cart` | lists cart items |
+| `GET` | `/api/cart` | lists cart items with subtotal, discounts and total — optional `?coupon=CODE` |
 | `POST` | `/api/cart/items` | adds an item — body `{ product_id, quantity }` |
 | `PUT` | `/api/cart/items/:product_id` | sets the quantity — body `{ quantity }` |
 | `DELETE` | `/api/cart/items/:product_id` | removes an item |

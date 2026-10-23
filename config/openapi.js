@@ -24,6 +24,40 @@ const openapiSpec = {
                     quantity: { type: 'integer', example: 2 },
                 },
             },
+            CartResponse: {
+                type: 'object',
+                properties: {
+                    items: {
+                        type: 'array',
+                        items: {
+                            allOf: [
+                                { $ref: '#/components/schemas/CartItem' },
+                                {
+                                    type: 'object',
+                                    properties: {
+                                        discount_percentage: { type: 'integer', example: 30 },
+                                        discounted_price: { type: 'number', example: 35 },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    subtotal: { type: 'number', example: 100 },
+                    promotions_discount: { type: 'number', example: 30 },
+                    coupon_discount: { type: 'number', example: 14 },
+                    total: { type: 'number', example: 56 },
+                    coupon: {
+                        type: 'object',
+                        nullable: true,
+                        description: 'Coupon outcome as returned by promotion-service',
+                        example: { code: 'INVERNO20', type: 'percentage', value: '20.00', applied: true },
+                    },
+                    discounts_applied: {
+                        type: 'boolean',
+                        description: 'false when promotion-service was unreachable and the cart was priced without discounts',
+                    },
+                },
+            },
             AddItemRequest: {
                 type: 'object',
                 required: ['product_id'],
@@ -59,20 +93,13 @@ const openapiSpec = {
         },
         '/api/cart': {
             get: {
-                summary: 'List the authenticated user\'s cart items',
+                summary: 'List the authenticated user\'s cart items with the discounted total',
+                description: 'Totals and discounts come from promotion-service (POST /internal/discounts/calculate). The coupon is only previewed here, never consumed.',
+                parameters: [{ name: 'coupon', in: 'query', required: false, schema: { type: 'string' }, example: 'INVERNO20' }],
                 responses: {
                     200: {
-                        description: 'Cart items',
-                        content: {
-                            'application/json': {
-                                schema: {
-                                    type: 'object',
-                                    properties: {
-                                        items: { type: 'array', items: { $ref: '#/components/schemas/CartItem' } },
-                                    },
-                                },
-                            },
-                        },
+                        description: 'Cart items and totals',
+                        content: { 'application/json': { schema: { $ref: '#/components/schemas/CartResponse' } } },
                     },
                     401: { description: 'Missing or invalid token' },
                 },
