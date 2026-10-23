@@ -123,6 +123,10 @@ All routes require authentication (cookie `accessToken` or `Authorization: Beare
 
 On Kubernetes the pod is annotated with `prometheus.io/scrape|port|path`, and the Ingress only routes `/api/cart`, `/docs`, `/openapi.json` and `/health`, so `/metrics` stays inside the cluster.
 
+### Grafana dashboard
+
+`grafana/shopping-cart-dashboard.json` is a dashboard exported for import: requests per second, 5xx error ratio, p50/p95/p99 latency, requests and errors by route and status code, plus memory and event-loop lag per pod. In Grafana, go to **Dashboards → New → Import**, upload the file and pick the Prometheus data source when asked — no manual editing needed.
+
 The request/response format is the same as the Postgres version — the front-end doesn't need to change. The one difference: the item's `id` is now the `product_id` itself (the `cart_items` PK no longer exists).
 
 ## API documentation (Swagger)
