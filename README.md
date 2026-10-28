@@ -98,6 +98,7 @@ Add `-d` to run in the background; stop everything with `docker compose down`.
 | `REDIS_PREFIX` | `cart` | key prefix |
 | `CART_TTL_SECONDS` | `604800` | cart expiration (7 days) |
 | `PRODUCT_SERVICE_URL` | `http://localhost:8000` | product-service base URL (`http://product-api:8000` inside the cluster) |
+| `PRODUCT_TIMEOUT_MS` | `2000` | deadline for the product lookup when adding an item; past it the request fails with `502` |
 | `JWT_PUBLIC_KEY_PATH` | `keys/public.pem` | authorization's RS256 public key used to verify access tokens |
 | `PROMOTION_SERVICE_URL` | `http://promotion:8000` | promotion-service base URL (discount quote) |
 | `PROMOTION_TIMEOUT_MS` | `2000` | deadline for the discount quote; past it the cart is returned without discounts |

@@ -37,6 +37,7 @@ config:
   CART_TTL_SECONDS: "604800"
   # Service name and port in product/k8s/product.yaml.
   PRODUCT_SERVICE_URL: http://product-api:8000
+  PRODUCT_TIMEOUT_MS: "2000"
   # Discount quote: POST /internal/discounts/calculate.
   PROMOTION_SERVICE_URL: http://promotion:8000
   PROMOTION_TIMEOUT_MS: "2000"

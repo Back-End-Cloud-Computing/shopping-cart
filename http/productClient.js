@@ -1,7 +1,15 @@
 const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:8000';
+const PRODUCT_TIMEOUT_MS = Number(process.env.PRODUCT_TIMEOUT_MS) || 2000;
 
+/**
+ * Bounded by PRODUCT_TIMEOUT_MS for the same reason as the promotion quote:
+ * with product down the call hangs, and adding an item would hang with it.
+ */
 async function request(path, options = {}) {
-    const response = await fetch(`${PRODUCT_SERVICE_URL}${path}`, options);
+    const response = await fetch(`${PRODUCT_SERVICE_URL}${path}`, {
+        ...options,
+        signal: AbortSignal.timeout(PRODUCT_TIMEOUT_MS),
+    });
 
     if (!response.ok) {
         const body = await response.json().catch(() => ({}));
