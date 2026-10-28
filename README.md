@@ -129,6 +129,10 @@ On Kubernetes the pod is annotated with `prometheus.io/scrape|port|path`, and th
 
 `grafana/shopping-cart-dashboard.json` is a dashboard exported for import: requests per second, 5xx error ratio, p50/p95/p99 latency, requests and errors by route and status code, plus memory and event-loop lag per pod. In Grafana, go to **Dashboards → New → Import**, upload the file and pick the Prometheus data source when asked — no manual editing needed.
 
+![shopping-cart dashboard in Grafana](grafana/shopping-cart-dashboard.png)
+
+The screenshot above is the dashboard imported as-is on Minikube, with the chart's 3 replicas scraped by Prometheus through the pod annotations and mixed traffic (200, 401 and 502) sent through the Ingress.
+
 The request/response format is the same as the Postgres version — the front-end doesn't need to change. The one difference: the item's `id` is now the `product_id` itself (the `cart_items` PK no longer exists).
 
 ## Lint and tests
