@@ -40,7 +40,7 @@ A product without `price` is rejected with `502`; an unknown id returns `404`.
 
 `GET /api/cart` prices the cart through `POST {PROMOTION_SERVICE_URL}/internal/discounts/calculate` (header `x-internal-secret: $INTERNAL_SECRET`), sending each item's `product_id`, `unit_price` and `quantity` plus the optional coupon. The response adds `subtotal`, `promotions_discount`, `coupon_discount`, `total` and `coupon` to the cart, and `discount_percentage` / `discounted_price` to each item.
 
-The quote never consumes a coupon use — that stays with order at checkout. If promotion is down, the cart is still returned priced without discounts and with `discounts_applied: false`.
+The quote never consumes a coupon use — that stays with order at checkout. If promotion is down or takes longer than `PROMOTION_TIMEOUT_MS` (2 s by default) to answer, the cart is still returned priced without discounts and with `discounts_applied: false`.
 
 ## Structure
 
@@ -100,6 +100,7 @@ Add `-d` to run in the background; stop everything with `docker compose down`.
 | `PRODUCT_SERVICE_URL` | `http://localhost:8000` | product-service base URL (`http://product-api:8000` inside the cluster) |
 | `JWT_PUBLIC_KEY_PATH` | `keys/public.pem` | authorization's RS256 public key used to verify access tokens |
 | `PROMOTION_SERVICE_URL` | `http://promotion:8000` | promotion-service base URL (discount quote) |
+| `PROMOTION_TIMEOUT_MS` | `2000` | deadline for the discount quote; past it the cart is returned without discounts |
 | `INTERNAL_SECRET` | — | `x-internal-secret` header for promotion's `/internal` routes; same value as promotion's |
 
 All of them are listed in `.env.example` with example values. Access tokens are verified against the authorization service's RS256 public key at `keys/public.pem` (no shared JWT secret).
