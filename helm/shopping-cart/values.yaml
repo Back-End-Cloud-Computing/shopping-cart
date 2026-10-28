@@ -1,0 +1,55 @@
+image:
+  repository: jcliz/shopping-cart
+  tag: ""            # empty uses appVersion from Chart.yaml
+  pullPolicy: IfNotPresent
+
+replicaCount: 3
+
+# Secret created outside the chart (./k8s/create-secret.sh), so the value never
+# lands in Git. Expected key: internal-secret.
+existingSecret: shopping-cart-secrets
+
+# ConfigMap with authorization's PUBLIC key, created outside the chart
+# (./k8s/create-configmap.sh ../authorization) from whatever key authorization
+# actually has running in this cluster. Expected key: public.pem.
+jwtPublicKeyConfigMap: jwt-public-key
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  host: shopping-cart.ganjj.local
+
+# Non-sensitive variables, same values as k8s/shopping-cart.yaml.
+config:
+  PORT: "3003"
+  # Redis is reached by the Service NAME. Point it elsewhere with
+  # redis.enabled=false for a managed Redis.
+  REDIS_URL: redis://redis:6379
+  REDIS_PREFIX: cart
+  CART_TTL_SECONDS: "604800"
+  # Service name and port in product/k8s/product.yaml.
+  PRODUCT_SERVICE_URL: http://product-api:8000
+  # Discount quote: POST /internal/discounts/calculate.
+  PROMOTION_SERVICE_URL: http://promotion:8000
+  PROMOTION_TIMEOUT_MS: "2000"
+
+# Single replica on the Pod's own disk, same as k8s/redis.yaml: carts are lost
+# if the Pod is recreated.
+redis:
+  enabled: true
+  image: redis:7-alpine
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi

@@ -1,0 +1,10 @@
+Before installing, create the Secret and the public key ConfigMap:
+  ./k8s/create-secret.sh
+  ./k8s/create-configmap.sh ../authorization
+
+Test:
+  kubectl port-forward svc/shopping-cart {{ .Values.config.PORT }}:{{ .Values.config.PORT }}
+  curl localhost:{{ .Values.config.PORT }}/health
+{{- if .Values.ingress.enabled }}
+  curl http://{{ .Values.ingress.host }}/health
+{{- end }}

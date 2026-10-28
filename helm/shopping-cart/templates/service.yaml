@@ -1,0 +1,14 @@
+# Stable address for the cart-service; api-gateway reaches it as
+# http://shopping-cart:3003, so the name is fixed rather than release-based.
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-cart
+spec:
+  type: ClusterIP
+  selector:
+    app: shopping-cart
+  ports:
+    - name: http
+      port: {{ .Values.config.PORT }}
+      targetPort: http

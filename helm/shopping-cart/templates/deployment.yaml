@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-cart
+  labels:
+    app: shopping-cart
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: shopping-cart
+  template:
+    metadata:
+      labels:
+        app: shopping-cart
+      annotations:
+        # New ConfigMap => new hash => the Pods restart with the new config.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.config.PORT | quote }}
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: shopping-cart
+          image: {{ printf "%s:%s" .Values.image.repository (default .Chart.AppVersion .Values.image.tag) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.PORT }}
+          envFrom:
+            - configMapRef:
+                name: shopping-cart-config
+          env:
+            - name: INTERNAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: internal-secret
+          volumeMounts:
+            # Overrides the key baked into the image at build time.
+            - name: jwt-public-key
+              mountPath: /app/keys
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 12
+          # /health returns 503 while Redis is down; a slow Redis shouldn't get
+          # the Pod killed, so liveness only checks the process is listening.
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: jwt-public-key
+          configMap:
+            name: {{ .Values.jwtPublicKeyConfigMap }}

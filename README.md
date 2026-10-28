@@ -171,7 +171,7 @@ docker login
 docker buildx imagetools inspect jcliz/shopping-cart:<version>   # should list linux/amd64 and linux/arm64
 ```
 
-Set `IMAGE=<user>/shopping-cart` to publish under another Docker Hub account. Remember to bump the tag in `k8s/shopping-cart.yaml`.
+Set `IMAGE=<user>/shopping-cart` to publish under another Docker Hub account. Remember to bump the tag in `k8s/shopping-cart.yaml` and `appVersion` in `helm/shopping-cart/Chart.yaml`.
 
 ## Running on Kubernetes (minikube)
 
@@ -230,6 +230,16 @@ Keep this running in the background, then open `http://localhost:8080`. Stop it 
 minikube stop     # pauses the cluster, keeps it for next time (preferred between labs)
 minikube start    # resumes it
 minikube delete   # removes it completely
+```
+
+## Helm chart
+
+The manifests in `k8s/` are also packaged as a chart in [`helm/shopping-cart`](helm/shopping-cart/README.md), with image, replicas, resources and Ingress host in `values.yaml`. The Secret and the public key ConfigMap stay outside the chart, created by the scripts in `k8s/`.
+
+```bash
+./k8s/create-secret.sh
+./k8s/create-configmap.sh ../authorization
+helm upgrade --install shopping-cart helm/shopping-cart
 ```
 
 ## Inspecting Redis

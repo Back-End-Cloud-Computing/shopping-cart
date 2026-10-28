@@ -1,0 +1,23 @@
+{{- if .Values.ingress.enabled }}
+# Allow list, same as k8s/ingress.yaml: /metrics is scraped from inside the
+# cluster (pod annotations) and gets no route from outside.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shopping-cart-ingress
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          {{- range list (list "/api/cart" "Prefix") (list "/docs" "Prefix") (list "/openapi.json" "Exact") (list "/health" "Exact") }}
+          - path: {{ index . 0 }}
+            pathType: {{ index . 1 }}
+            backend:
+              service:
+                name: shopping-cart
+                port:
+                  name: http
+          {{- end }}
+{{- end }}

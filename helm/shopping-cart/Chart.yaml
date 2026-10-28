@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shopping-cart
+description: GANJJ shopping cart service (cart-service) with an optional single-instance Redis
+type: application
+version: 0.1.0
+appVersion: "1.1.0"
